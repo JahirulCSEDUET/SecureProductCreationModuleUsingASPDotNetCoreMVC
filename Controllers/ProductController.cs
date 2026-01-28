@@ -20,14 +20,21 @@ namespace SecureProductCreationModuleUsingASPDotNetCoreMVC.Controllers
             return View();
         }
         [HttpPost]
-        public IActionResult Create( Product product)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateAsync([Bind("Name,Description, Price")] Product product)
         {
             if (ModelState.IsValid)
             {
-
-                return RedirectToAction("Home/index");
+                var prodName= _context.Products.FirstOrDefault(p => p.Name == product.Name);
+                if (prodName == null) {
+                    product.CreatedDate = DateTime.Now;
+                    _context.Products.Add(product);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction("Index", "Home");
+                }
+                
             }
-            return View();
+            return View(product);
         }
     }
 }
